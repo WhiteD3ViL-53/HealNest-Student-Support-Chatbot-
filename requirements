@@ -1,0 +1,9 @@
+# Core app dependencies
+streamlit
+flask
+requests
+python-dotenv
+gunicorn
+
+# Persistence (Firestore + JSON fallback)
+google-cloud-firestore
