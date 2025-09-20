@@ -1,4 +1,4 @@
-# mental.py — MindSpire (User dashboard with Resources Hub — improved metadata & fixed Streamlit call)
+# mental.py — Heal Nest (User dashboard with Resources Hub — improved metadata & fixed Streamlit call)
 # Save to: C:\Users\SIDDHANT THAKUR\Desktop\weatherapp\mental.py
 
 import os
@@ -14,7 +14,7 @@ from data_store_utils import load_data, save_data
 # -----------------------
 # Page config + CSS
 # -----------------------
-st.set_page_config(page_title="MindSpire — Student", layout="wide")
+st.set_page_config(page_title="Heal Nest — Student", layout="wide")
 st.markdown(
     """
     <style>
@@ -145,7 +145,7 @@ RESOURCES = [
 ]
 
 # -----------------------
-# Resources hub UI (handles open/view inline, bookmarks via session_state)
+# Resources hub UI (rendered at bottom of homepage only when requested)
 # -----------------------
 def render_resource_card(r):
     """Render a single resource as a card. 'Open / Download' sets active_resource for inline viewer."""
@@ -190,7 +190,7 @@ def render_resource_card(r):
 if st.session_state.show_chat:
     topcols = st.columns([8, 1])
     with topcols[0]:
-        st.markdown("<h1>MindSpire — Chat (Full screen)</h1>", unsafe_allow_html=True)
+        st.markdown("<h1>Heal Nest — Chat (Full screen)</h1>", unsafe_allow_html=True)
     with topcols[1]:
         if st.button("Close Chatbot"):
             st.session_state.show_chat = False
@@ -290,8 +290,7 @@ if st.session_state.show_booking:
 # -----------------------
 # Display logo (left) + title (right) — no upload option, uses local paths fallback
 LOGO_CANDIDATES = [
-    r"C:\Users\SIDDHANT THAKUR\Pictures\Screenshots\Screenshot 2025-09-11 010740.png",
-    r"C:\Users\SIDDHANT THAKUR\Desktop\1757338202934.jpg",
+    r"C:\Users\SIDDHANT THAKUR\Desktop\WeatherApp\healnest.png",
     "logo.png",
     "logo.jpg",
 ]
@@ -313,10 +312,10 @@ if logo_path:
         except Exception:
             pass
     with c2:
-        st.title("MindSpire — Student Support Chatbot (Prototype)")
+        st.title("Heal Nest — Student Support Chatbot (Prototype)")
         st.markdown("*Prototype UI — not a replacement for professional help.*")
 else:
-    st.title("MindSpire — Student Support Chatbot (Prototype)")
+    st.title("Heal Nest — Student Support Chatbot (Prototype)")
     st.markdown("*Prototype UI — not a replacement for professional help.*")
 
 st.markdown("---")
@@ -436,11 +435,11 @@ st.markdown('---')
 col1, col2 = st.columns([3, 1])
 with col1:
     st.header("Contact & Support")
-    st.write("For demos: demo@youruniversity.edu")
+    st.write("For demos: demo@healnest.edu")
     st.write("Campus counselling: +91-XXXXXXXXXX")
 with col2:
     st.write("")
-    st.write("\u00A9 2025 MindSpire — Demo")
+    st.write("\u00A9 2025 Heal Nest — Demo")
 
 st.markdown('---')
 st.caption("If you or someone is in immediate danger, contact local emergency services immediately.")

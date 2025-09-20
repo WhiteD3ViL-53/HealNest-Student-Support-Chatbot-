@@ -1,4 +1,4 @@
-# Admin.py — MindSpire Admin / Counsellor Dashboard (tokens-only, safe rerun)
+# Admin.py — Heal Nest Admin / Counsellor Dashboard (tokens-only, safe rerun)
 # Save to: C:\Users\SIDDHANT THAKUR\Desktop\weatherapp\Admin.py
 
 import io
@@ -19,7 +19,7 @@ load_dotenv()
 # -----------------------
 # Page config & styles
 # -----------------------
-st.set_page_config(page_title="MindSpire — Admin Dashboard", layout="wide")
+st.set_page_config(page_title="Heal Nest — Admin Dashboard", layout="wide")
 
 st.markdown(
     """
@@ -40,6 +40,18 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# -----------------------
+# Show Logo
+# -----------------------
+LOGO_PATH = r"C:\Users\SIDDHANT THAKUR\Desktop\WeatherApp\healnest.png"
+if os.path.exists(LOGO_PATH):
+    try:
+        st.image(LOGO_PATH, width=160)
+    except Exception as e:
+        st.warning(f"Could not load logo: {e}")
+else:
+    st.info(f"Logo not found at {LOGO_PATH}")
 
 # -----------------------
 # Helpers
@@ -107,7 +119,7 @@ if pw != ADMIN_PASSWORD:
 # Admin UI
 # -----------------------
 st.markdown('<div class="admin-wrap">', unsafe_allow_html=True)
-st.header("MindSpire — Admin / Counsellor Dashboard")
+st.header("Heal Nest — Admin / Counsellor Dashboard")
 st.markdown("<div class='admin-panel'>", unsafe_allow_html=True)
 
 tabs = st.tabs(["Overview", "Bookings", "Availability", "Counsellors", "Chat Logs", "Reports"])
@@ -159,15 +171,13 @@ with tabs[1]:
     if not store.get("bookings"):
         st.info("No bookings yet.")
     else:
-        for idx, b in enumerate(list(store["bookings"])):
+        for idx, b in enumerate(list(store["bookings"])): 
             day_str = DAYS[b.get("day", -1)] if "day" in b else "-"
             slot_str = SLOTS[b.get("slot", -1)] if "slot" in b else "-"
             with st.expander(f"{idx+1}. {day_str} — {slot_str}"):
                 st.write(f"**Token:** {b.get('token', '-')}")
                 st.write(f"**Time:** {b.get('time', '-')}")
-                # remove booking button
                 if st.button(f"Remove booking #{idx+1}", key=f"remove_{idx}"):
-                    # free the slot availability if possible
                     try:
                         store["availability"][f"{b['day']}_{b['slot']}"] = True
                     except Exception:
@@ -259,4 +269,4 @@ with tabs[5]:
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
-st.caption("Admin dashboard — protected by password. Data stored in data_store.json.")
+st.caption("Heal Nest admin dashboard — protected by password. Data stored in data_store.json.")
