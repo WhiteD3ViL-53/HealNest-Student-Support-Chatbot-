@@ -8,3 +8,6 @@ Run the student dashboard:
 streamlit run mental.py
 Run the admin/counselor dashboard:
 streamlit run Admin.py
+
+
+pswd for admin 1234567890
