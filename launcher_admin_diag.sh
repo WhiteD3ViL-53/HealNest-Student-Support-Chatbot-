@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-echo "=== PWD ==="
+echo "=== DIAGNOSTIC ADMIN LAUNCHER START ==="
+
+# Show working dir and files
+echo "--- PWD ---"
 pwd
+echo "--- FILES (ls -al) ---"
+ls -al
+echo "--- TREE (maxdepth 2) ---"
+find . -maxdepth 2 -type f | sort
 
-echo "=== ls /app ==="
-ls -al /app || true
+# Check Python version & pip
+echo "--- PYTHON INFO ---"
+python --version || true
+pip --version || true
+pip list || true
 
-echo "=== show top of Admin.py ==="
-if [ -f ./Admin.py ]; then
-  sed -n '1,120p' ./Admin.py
+# Try to show Admin.py specifically
+if [ -f "./Admin.py" ]; then
+  echo "FOUND Admin.py ✅"
 else
-  echo "Admin.py not found in /app"
+  echo "Admin.py NOT FOUND ❌"
 fi
 
-echo "=== attempt to start Admin in foreground (8s timeout) ==="
-# Run streamlit in foreground for a short time to capture startup output/errors
-timeout 8 bash -lc 'streamlit run ./Admin.py --server.port 8602 --server.address 0.0.0.0 --server.headless true' || echo "Admin start finished or timed out"
-
-echo "=== try curl 127.0.0.1:8602 ==="
-curl -sS http://127.0.0.1:8602/ -m 3 | sed -n '1,80p' || echo "8602 not responding"
-
-echo "=== END DIAG ==="
+# Run Admin.py with Streamlit directly
+echo "--- Starting Admin.py with Streamlit ---"
+exec streamlit run ./Admin.py --server.port=8080 --server.address=0.0.0.0 --server.headless true
