@@ -290,7 +290,7 @@ if st.session_state.show_booking:
 # -----------------------
 # Display logo (left) + title (right) — no upload option, uses local paths fallback
 LOGO_CANDIDATES = [
-    r"C:\Users\SIDDHANT THAKUR\Desktop\WeatherApp\healnest.png",
+    r"healnest.png",
     "logo.png",
     "logo.jpg",
 ]
@@ -443,3 +443,4 @@ with col2:
 
 st.markdown('---')
 st.caption("If you or someone is in immediate danger, contact local emergency services immediately.")
+
