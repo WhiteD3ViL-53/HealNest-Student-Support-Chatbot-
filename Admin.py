@@ -44,7 +44,7 @@ st.markdown(
 # -----------------------
 # Show Logo
 # -----------------------
-LOGO_PATH = r"C:\Users\SIDDHANT THAKUR\Desktop\WeatherApp\healnest.png"
+LOGO_PATH = r"healnest.png"
 if os.path.exists(LOGO_PATH):
     try:
         st.image(LOGO_PATH, width=160)
@@ -270,3 +270,4 @@ with tabs[5]:
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 st.caption("Heal Nest admin dashboard — protected by password. Data stored in data_store.json.")
+
