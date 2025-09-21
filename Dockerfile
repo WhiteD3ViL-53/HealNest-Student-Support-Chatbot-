@@ -22,9 +22,10 @@ RUN pip install --upgrade pip setuptools wheel \
 # copy app code
 COPY . .
 
-# make launcher executable
-RUN chmod +x ./launcher.sh
+# make both launchers executable
+RUN chmod +x ./launcher.sh ./launcher_admin.sh
 
 EXPOSE 8080
 
-CMD ["./launcher.sh"]
+# Select which launcher to run based on SERVICE_TYPE
+CMD if [ "$SERVICE_TYPE" = "admin" ]; then ./launcher_admin.sh; else ./launcher.sh; fi
