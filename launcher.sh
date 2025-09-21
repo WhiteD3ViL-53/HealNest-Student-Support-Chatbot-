@@ -9,6 +9,16 @@ _echo() {
   printf '[%s] %s\n' "$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" "$*"
 }
 
+# If a service account JSON is provided via env, write it to /tmp/sa.json and export
+if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON:-}" ]; then
+  _echo "Writing service account JSON to /tmp/sa.json"
+  # Use printf to avoid extra newlines
+  printf "%s" "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/sa.json
+  export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+else
+  _echo "GOOGLE_APPLICATION_CREDENTIALS_JSON not set; Firestore will rely on ambient credentials (if any)"
+fi
+
 # Load .env if present (local only)
 if [ -f .env ]; then
   _echo "Loading .env"
