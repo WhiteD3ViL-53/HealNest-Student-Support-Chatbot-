@@ -5,73 +5,77 @@ set -euo pipefail
 MENTAL_PORT=8501
 ADMIN_PORT=8502
 
-_echo() {
-  printf '[%s] %s\n' "$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" "$*"
+timestamp() {
+  date --utc +'%Y-%m-%dT%H:%M:%SZ'
 }
 
-# If a service account JSON is provided via env, write it to /tmp/sa.json and export
+log() {
+  printf '[%s] %s\n' "$(timestamp)" "$*"
+}
+
+# Write service account JSON if provided (safe)
 if [ -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON:-}" ]; then
-  _echo "Writing service account JSON to /tmp/sa.json"
-  # Use printf to avoid extra newlines
+  log "Writing service account JSON to /tmp/sa.json"
+  # use printf to avoid extra newline issues
   printf "%s" "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/sa.json
   export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
 else
-  _echo "GOOGLE_APPLICATION_CREDENTIALS_JSON not set; Firestore will rely on ambient credentials (if any)"
+  log "GOOGLE_APPLICATION_CREDENTIALS_JSON not set; Firestore may fallback to JSON file or ambient creds"
 fi
 
-# Load .env if present (local only)
+# Load .env for local debugging (no-op in production if .env absent)
 if [ -f .env ]; then
-  _echo "Loading .env"
-  # export all non-comment lines
+  log "Loading .env"
   set -o allexport
   # shellcheck disable=SC1091
   source .env
   set +o allexport
 fi
 
-# start a background process and capture PID helper
+# helper: start background command and stream its stdout/stderr into container logs
 _start_bg() {
-  local cmd=$1
-  eval "$cmd" > >(cat -) 2> >(cat - >&2) &
+  # $1 = command string
+  eval "$1" > >(sed -u "s/^/[$(timestamp)] [child] /") 2> >(sed -u "s/^/[$(timestamp)] [child] /" >&2) &
   echo $!
 }
 
-# Start mental app
+# Start mental
+MENTAL_PID=""
 if [ -f ./mental.py ]; then
-  _echo "Starting mental.py on port ${MENTAL_PORT}"
+  log "Starting mental.py on port ${MENTAL_PORT}"
   MENTAL_CMD="streamlit run ./mental.py --server.port ${MENTAL_PORT} --server.address 0.0.0.0 --server.headless true"
   MENTAL_PID=$(_start_bg "$MENTAL_CMD")
+  log "Started mental.py (PID ${MENTAL_PID}) -> http://127.0.0.1:${MENTAL_PORT}"
 else
-  _echo "mental.py not found; skipping mental service"
-  MENTAL_PID=""
+  log "mental.py not found; skipping mental service"
 fi
 
-# Start Admin app (capital A; keep exact filename)
+# Start Admin
+ADMIN_PID=""
 if [ -f ./Admin.py ]; then
-  _echo "Starting Admin.py on port ${ADMIN_PORT}"
+  log "Starting Admin.py on port ${ADMIN_PORT}"
   ADMIN_CMD="streamlit run ./Admin.py --server.port ${ADMIN_PORT} --server.address 0.0.0.0 --server.headless true"
   ADMIN_PID=$(_start_bg "$ADMIN_CMD")
+  log "Started Admin.py (PID ${ADMIN_PID}) -> http://127.0.0.1:${ADMIN_PORT}"
 else
-  _echo "Admin.py not found; skipping admin service"
-  ADMIN_PID=""
+  log "Admin.py not found; skipping admin service"
 fi
 
-# Forward signals to children for graceful shutdown
+# graceful shutdown forwarding
 _term() {
-  _echo "Termination signal received. Stopping child processes..."
+  log "Termination signal received — forwarding to children"
   if [ -n "${MENTAL_PID:-}" ]; then
     kill -TERM "$MENTAL_PID" 2>/dev/null || true
   fi
   if [ -n "${ADMIN_PID:-}" ]; then
     kill -TERM "$ADMIN_PID" 2>/dev/null || true
   fi
-  # allow time to exit
   sleep 2
   exit 0
 }
 trap _term SIGTERM SIGINT
 
-# wait for a port to respond (uses curl if available)
+# wait helper (checks local http)
 _wait_for_port() {
   local port=$1
   local tries=0
@@ -79,29 +83,38 @@ _wait_for_port() {
   if command -v curl >/dev/null 2>&1; then
     until curl -sf "http://127.0.0.1:${port}" >/dev/null 2>&1 || [ $tries -ge $max ]; do
       tries=$((tries+1))
-      _echo "Waiting for service on port ${port} (attempt ${tries}/${max})..."
+      log "Waiting for service on port ${port} (attempt ${tries}/${max})..."
       sleep 1
     done
+    if [ $tries -ge $max ]; then
+      log "Timeout waiting for port ${port}"
+      return 1
+    fi
+    log "Port ${port} is responding"
+    return 0
   else
-    _echo "curl not available — sleeping 3s for port ${port}"
+    # fallback sleep
+    log "curl not available — sleeping 3s for port ${port}"
     sleep 3
+    return 0
   fi
 }
 
-# Probe services that were started
+# Probe services
 if [ -n "${MENTAL_PID:-}" ]; then
-  _wait_for_port "${MENTAL_PORT}"
+  _wait_for_port "${MENTAL_PORT}" || log "Warning: mental did not respond in time"
 fi
 if [ -n "${ADMIN_PID:-}" ]; then
-  _wait_for_port "${ADMIN_PORT}"
+  _wait_for_port "${ADMIN_PORT}" || log "Warning: admin did not respond in time"
 fi
 
-# Export proxy targets so proxy.py can read them
+# Export proxy targets
 export MAIN_TARGET="http://127.0.0.1:${MENTAL_PORT}"
 export ADMIN_TARGET="http://127.0.0.1:${ADMIN_PORT}"
 export PORT="${PORT}"
 
-_echo "Starting proxy on port ${PORT} -> main:${MAIN_TARGET}, admin:${ADMIN_TARGET}"
+log "All child processes launched (mental PID=${MENTAL_PID:-none}, admin PID=${ADMIN_PID:-none})."
+log "Starting proxy on port ${PORT} -> main:${MAIN_TARGET}, admin:${ADMIN_TARGET}"
 
-# Exec proxy so it becomes PID 1 (proper signal handling by container runtime)
+# exec proxy makes it PID 1 so container stops when proxy exits and receives signals correctly
 exec python proxy.py
