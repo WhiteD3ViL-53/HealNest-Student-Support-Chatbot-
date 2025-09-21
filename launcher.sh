@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 set -euo pipefail
 
 : "${PORT:=8501}"    # Railway exposes 8501 by default in your service
