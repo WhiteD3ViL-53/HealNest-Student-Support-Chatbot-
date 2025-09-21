@@ -265,9 +265,11 @@ with tabs[5]:
         for b in store.get("bookings", []):
             writer.writerow([DAYS[b["day"]], SLOTS[b["slot"]], b.get("token", ""), b.get("time", "")])
         st.download_button("Download bookings.csv", data=buf.getvalue(), file_name="bookings.csv", mime="text/csv")
+print("[Admin.py] module loaded")
 
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 st.caption("Heal Nest admin dashboard — protected by password. Data stored in data_store.json.")
+
 
