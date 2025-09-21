@@ -1,9 +1,6 @@
-# Core app dependencies
 streamlit
-flask
+Flask>=2.2,<3
 requests
 python-dotenv
-gunicorn
-
-# Persistence (Firestore + JSON fallback)
 google-cloud-firestore
+gunicorn
