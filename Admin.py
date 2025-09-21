@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 # local helper to persist data (must be present in same folder)
 from data_store_utils import load_data, save_data
+print("[Admin.py] module loaded")
 
 # load .env if present (for ADMIN_PASSWORD)
 load_dotenv()
@@ -271,5 +272,6 @@ print("[Admin.py] module loaded")
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 st.caption("Heal Nest admin dashboard — protected by password. Data stored in data_store.json.")
+
 
 
